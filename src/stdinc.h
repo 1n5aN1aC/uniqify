@@ -13,3 +13,10 @@
 #include <sys/wait.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
+
+#ifndef main
+#define main
+
+#include "Parser.hpp"
+
+#endif

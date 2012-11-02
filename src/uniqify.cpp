@@ -4,7 +4,6 @@
 
 using namespace std;
 
-#define delimiters " 1234567890!@#$%^&*()`~-_=+[{]}|:;'/?.>,<\\\"\n\t\r"
 #define HELP "Correct Program Usage:\nuniqify [<number of threads >]\nNumber of threads will be asumed to be 10 if not specified\nYou must pipe or redirect the input into uniqify\n"
 
 int workers = 10;
@@ -15,18 +14,14 @@ int main(int argc, char** argv)
 		cout << Assuming 10 Working Processess << endl;
 		workers = 10;
 	}
-	else if (argc > 3) {
+	else if (argc > 3)
 		cout << HELP << endl << "I can't handle all this awesomness!\n" << "Too many arguments!" << endl;
-	}
-	else {
+	else
 		workers = atoi (argv[1]);
-	}
 	
 	cout << workers;
 	
-	
 	bool quit = false;
-	
 	while (!quit) {
 		if (
 		
@@ -40,6 +35,6 @@ int main(int argc, char** argv)
 
 readLineFromCIN() {
 	cout << "derp";
-	string bufferIn = readFromLine(file, 4096);
+	string bufferIn = readFromLine(file, PIPE_MAX);
 	boost::split(splitAr,newBufferString,boost::is_any_of(delimiters));
 }
