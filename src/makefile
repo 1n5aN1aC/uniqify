@@ -11,7 +11,7 @@ TARGET = myar
 INCLUDES = stdinc.h
 
 #any .c or .cpp files go here
-SOURCE =  myar.cpp
+SOURCE =  uniqify.cpp
 
 #default is to compile
 default:	compile
