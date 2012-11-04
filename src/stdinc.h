@@ -5,7 +5,7 @@
 //Only define these the first time
 #define _BSD_SOURCE
 
-#define HELP "Correct Program Usage:\nuniqify [<number of threads >]\nNumber of threads will be asumed to be 10 if not specified\nYou must pipe or redirect the input into uniqify\n"
+#define HELP "\nCorrect Program Usage:\nuniqify [<number of threads >]\nNumber of threads will be asumed to be 10 if not specified\nYou must pipe or redirect the input into uniqify\n"
 #define PIPE_MAX 4096
 #define STDIN 0
 #define delimiters " 1234567890!@#$%^&*()`~-_=+[{]}|:;'/?.>,<\\\"\n\t\r"
@@ -20,6 +20,8 @@
 #include <sys/wait.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/foreach.hpp>
 #include <deque>
 #include <list>
 #include <queue>
+#include <vector>
