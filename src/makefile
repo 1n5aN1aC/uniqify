@@ -1,17 +1,15 @@
-CC = icc
 CXX = icpc
-CFLAGS = -Wall -std=c99 -openmp -O3 -g -I.
 CXXFLAGS = -Wall -openmp -O3 -g
 #overkill on the flags, but that doesn't hurt anything.
 LDFLAGS = -lrt -lpthread
 #replace this if you want to change the output name.
-TARGET = uniq
+TARGET = uniqify
 
 #any headers go here
 INCLUDES = stdinc.h
 
 #any .c or .cpp files go here
-SOURCE = uniqify.cpp
+SOURCE = uniqify2.cpp
 
 #default is to compile
 default: compile
@@ -25,4 +23,4 @@ debug: ${SOURCE} ${INCLUDES}
 	${CXX} ${CXXFLAGS} ${SOURCE} -o ${TARGET} ${LDFLAGS} -DDEBUG
 
 clean:
-	rm myar test.a -f
+	rm uniq uniqify -f

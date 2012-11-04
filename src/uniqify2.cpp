@@ -10,69 +10,53 @@ int workers = 10;
 //Method Declarations
 bool kill(string message);
 bool error(string message);
-string readPipeLine(FILE *file);
+string readFileLine(FILE* file);
+void writeFileLine(string strIn, FILE* fToWrite);
 FILE* openFD(int fd, string mode);
+void closeFile(FILE* fileToClose);
 void closeFD(int fd);
+int* makePipe();
+//change fd
+//wait / waitpid
+void sort();
 
 int main(int argc, char** argv)
 {
 	if (argc < 2) {
-		cout << "Assuming 10 Working Processess" << endl;
+		cout << "Quantity Not Specified, So Assuming 10 Working Processess" << endl;
 		workers = 10;
 	}
 	else if (argc > 3) {
 		cout << HELP << endl << "I can't handle all this awesomness!\n" << "Too many arguments!" << endl;
-		kill("Invalid use of uniq.");
+		kill("Invalid use of uniqify.");
 	}
 	else
 		workers = atoi (argv[1]);
-	
-	cout << workers;
-	
+
+	//Create 2-d filedescriptor array.
+	//up to 7(0-6) for purposes of also storing process -> consolidator.
+	//number 7 (6) is the pid of the child.
+	int filed[workers][7];
+
+	//test loop
 	for (int i=0; i < workers; i++) {
-		cout << "derp ";
+		cout << "derp " << endl;
 	}
 
-	int filed[2];
-
-	if(pipe(filed) == -1)
-		kill("pipe creation error.");
-
-	switch (fork()) {
-	case -1:
-		kill("error forking!");
-	case 0: //child
-		if (close(filed[1]) == -1)
-			kill("close - child");
-
-		for (;PIPE_MAX;filed[0]) {
-			char buf[4100];
-			//int numRead = read(filed[0], buf, PIPE_MAX);
-			FILE* childIn = openFD(filed[0], "r");
-			fgets(buf,PIPE_MAX,childIn);
-			//if (numRead == NULL)
-			//	kill("error reading");
-			//if (numRead == 0)
-			//	break;
-			//if (write(STDOUT_FILENO, buf, numRead) != numRead)
-			//	kill("partial read/write failure");
+	for (int i=0; i < workers; i++) {
+		int temp = fork();
+		if (temp == -1)
+			kill("error forking");
+		if (temp == 0) {
+			//child code
+			cout << "child " << i << " ran" << endl;
+			exit(0);
 		}
-
-		write (STDOUT_FILENO, "\n", 1);
-		if (close(filed[0] == -1))
-			kill("close error");
-		_exit(EXIT_SUCCESS);
-	default: //parent
-		if (close(filed[0]) == -1)
-			kill("close - parent");
-			
-		if (write(filed[1], argv[1], strlen(argv[1])) != strlen(argv[1]))
-			kill("parent partial read/write fail");
-
-		if (close(filed[1]) == -1)
-			kill("parent close error");
-		wait(NULL);
-		exit(EXIT_SUCCESS);
+		else {
+			//save child pid into last element of master fd array for later use.
+			filed[i][6] = temp;
+			cout << filed[i][6] << endl;
+		}
 	}
 
 	return 0;
@@ -87,7 +71,7 @@ bool error(string message) {
 	perror(message.c_str());
 	return false;
 }
-string readPipeLine(FILE *file) {
+string readFileLine(FILE *file) {
 	//assuming FILE is valid if it gets called into here.
 	char *buff = (char*)malloc(PIPE_MAX);
 
@@ -98,6 +82,7 @@ string readPipeLine(FILE *file) {
 	free(buff);
 	return temp;
 }
+void writeFileLine(string strIn, FILE* fToWrite);
 FILE* openFD(int fd, string mode) {
 	FILE* file;
 	file = fdopen(fd, mode.c_str());
@@ -105,7 +90,14 @@ FILE* openFD(int fd, string mode) {
 		kill("Error opening FDas a file.");
 	return file;
 }
+void closeFile(FILE* fileToClose);
 void closeFD(int fd) {
 	if (close(fd) == -1)
 		kill("Error closing file.");
+}
+int* makePipe();
+//change fd
+//wait / waitpid
+void sort() {
+	execlp("sort","","");
 }
