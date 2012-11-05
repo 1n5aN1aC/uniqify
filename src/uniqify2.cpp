@@ -11,12 +11,9 @@ int workers = 10;
 bool kill(string message);
 bool error(string message);
 string readFileLine(FILE* file);
-void writeFileLine(string strIn, FILE* fToWrite);
 FILE* openFD(int fd, string mode);
 void closeFile(FILE* fileToClose);
 void closeFD(int fd);
-int* makePipe();
-//change fd
 //wait / waitpid
 void sort();
 
@@ -122,19 +119,30 @@ int main(int argc, char** argv)
 		kill("error forking");
 		break;
 	case 0:
+	{
 		// (Merger Code)
 		//open read end of child->Merger pipes.
 		for (int i=0;i < workers;i++) {
 			procOutFile[i] = openFD(procOutFD[i][0], "r");
 		}
+		//Initialize array for Individual Child Sorter Buffers.
+		string* ChildBufs[workers];
 
-		string* sortedBuf[workers];
+		//for ()
+		//fill each buffer initially
 
+		//while()
+		//get and ouput the lowest one.
+		ChildBufs[0] = NULL; //that one
+		//check if any buffers = null
+		//if so, attempt to fetch next one.
 
 		cout << "this is your merger speaking!";
 
 
+
 		break;
+	}
 	default:
 		//Parent Code
 
@@ -164,7 +172,6 @@ string readFileLine(FILE *file) {
 	free(buff);
 	return temp;
 }
-void writeFileLine(string strIn, FILE* fToWrite);
 FILE* openFD(int fd, string mode) {
 	FILE* file;
 	file = fdopen(fd, mode.c_str());
@@ -181,8 +188,6 @@ void closeFD(int fd) {
 	if (close(fd) == -1)
 		kill("Error closing file descriptor");
 }
-int* makePipe();
-//change fd
 //wait / waitpid
 void sort() {
 	execlp("sort","","");
