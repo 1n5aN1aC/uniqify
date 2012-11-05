@@ -35,8 +35,9 @@ int main(int argc, char** argv)
 
 	//Create 2-d filedescriptor arrays.
 	int procInFD[workers][2];	//File Descriptors of pipe from parser to children
-	FILE* procInFile[workers];	//array of pipes opened as files
+	FILE* procInFile[workers];	//array of pipes opened as files for distributor
 	int procOutFD[workers][2];	//File descriptors of pipe from children to sorter
+	FILE* procOutFile[workers];	//array of pipes opened as files for merger
 	int procPID[workers];		//pid of children
 
 	for (int i=0; i < workers; i++) {
@@ -51,44 +52,41 @@ int main(int argc, char** argv)
 		if (temp == -1)
 			kill("error forking");
 		if (temp == 0) {
+			//Child (sorter) Code
 			//cout << "child " << i << " ran and got fds: " << filed[i][0] << " " << filed[i][1] << endl;	//test debug code
-
+			
+			closeFD(procInFD[i][1]);	//close unused File Descriptor (Distributor <- Child)
+			closeFD(procOutFD[i][0]);	//close unused File Descriptor (Child <- Sorter)
 			dup2(procInFD[i][0], 0);	//dupe pipe from distributer to child proccess stdin
-			closeFD(procInFD[i][1]);	//close unused File Descriptor
-			//dup2(procOutFD[i][1], 1);		//dupe child proccess cout to pipe to final sorter
+			dup2(procOutFD[i][1], 1);	//dupe child proccess stdout to pipe to final sorter
 
 			sort();					//exec() the sorting proccess
 
 			return 0;				//kill ourself.
 		}
 		else {
+			//Parent (Distributer) Code
 			//save child pid into last element of master fd array for later use
 			procPID[i] = temp;
 
-			//FILE* derpIn = openFD(procInFD[i][0], "r");	//open as file
-			//char buf[4100] = "derp aerp";
-			//fputs(buf,derpIn);
-
-			//FILE* derpOut = openFD(procInFD[i][1], "w");	//open as file
-			//char buf2[4100];
-			//fgets(buf2,PIPE_MAX,derpOut);
-			//cout << buf;
-
-			//cout test code.
-			//cout << filed[i][4] << endl;
+			//Close Unused FD's
+			closeFD(procInFD[i][0]);	//close unused File Descriptor (Distributor <- Child)
+			closeFD(procOutFD[i][1]);	//close unused File Descriptor (Child <- Sorter)
+			//(Sorter -> Child) WILL BE USED LATER.  DON'T CLOSE IT!!!!!
 		}
 	}
 
-
+	//open write end of distribution->children pipes.
 	for (int i=0;i < workers;i++) {
 		procInFile[i] = openFD(procInFD[i][1], "w");
+		cout << "Thread ID: " << i << " file: " << procInFile[i] << " fd: " << procInFD[i][1]<< endl;
 	}
-	int currPipe = 0;
+	int currPipe = 0;	//keeps track of current pipe
 
 	while (true) {
 		FILE* CIN = fdopen(0, "r");
 		char buff[4100];
-		if(fgets(buff, PIPE_MAX, CIN) == NULL)
+		if(fgets(buff, PIPE_MAX, CIN) == NULL)			//TODO- test past first line
 			break;
 	
 		//split the line read into seperate strings
@@ -103,19 +101,44 @@ int main(int argc, char** argv)
 		}
 
 		//Write to pipes-  round-robbin style.
-		BOOST_FOREACH(string thisWord, buffer)
-			{
-				fputs(thisWord.c_str(),procInFile[currPipe]);
-				currPipe++;
-				if (currPipe > workers-1)
-					currPipe = 0;
-			}
-
+		BOOST_FOREACH(string thisWord, buffer) {
+			fputs(thisWord.c_str(),procInFile[currPipe]);
+			currPipe++;
+			if (currPipe > workers-1)
+				currPipe = 0;
+			fflush(NULL);
+		}
 	}
 
 	//Close Open Files (pipes)
 	for (int i=0; i<workers; i++) {
-		closeFile(procInFile[i]);
+		cout << "file after: " << procInFile[i] << " fd: " << procInFD[i][1] << endl;
+		//closeFile(procInFile[i]);
+		closeFD(procInFD[i][1]);
+	}
+
+	switch ( fork() ) {
+	case -1:
+		kill("error forking");
+		break;
+	case 0:
+		// (Merger Code)
+		//open read end of child->Merger pipes.
+		for (int i=0;i < workers;i++) {
+			procOutFile[i] = openFD(procOutFD[i][0], "r");
+		}
+
+		string* sortedBuf[workers];
+
+
+		cout << "this is your merger speaking!";
+
+
+		break;
+	default:
+		//Parent Code
+
+		break;
 	}
 	
 	return 0;
@@ -146,16 +169,17 @@ FILE* openFD(int fd, string mode) {
 	FILE* file;
 	file = fdopen(fd, mode.c_str());
 	if (file == NULL)
-		kill("Error opening FD as a file.");
+		kill("Error opening FD as a file");
 	return file;
 }
 void closeFile(FILE* fileToClose) {
+	cout << "\nClosing FD: " << fileToClose;
 	if (fclose(fileToClose) == -1)
 		kill("Error closing file");
 }
 void closeFD(int fd) {
 	if (close(fd) == -1)
-		kill("Error closing file descriptor.");
+		kill("Error closing file descriptor");
 }
 int* makePipe();
 //change fd
