@@ -11,12 +11,10 @@ The goals of this program:
 Compiling
 ---------
 
-cd src
 make
 to compile uniqify
 
-cd doc
-make
+make -f doc
 to compile readme & documentation
 
 Usage
